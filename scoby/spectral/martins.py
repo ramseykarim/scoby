@@ -26,8 +26,7 @@ import pandas as pd
 
 from . import parse_sptype
 from .. import utils
-
-martins_path = f"{utils.misc_data_path}SpectralTypes/Martins/"
+from .. import config
 
 table_info = {
     # Some nice, clean hardcoding
@@ -50,12 +49,13 @@ replace_key = {
     'log ': 'log_',
 }
 
+
 def split_line_and_apply_replace_key(line):
-    line = line.strip() # Get rid of the newline
+    line = line.strip()  # Get rid of the newline
     for k in replace_key:
-        line = line.replace(k, replace_key[k]) # LaTeX-specific hardcode-y replacement
+        line = line.replace(k, replace_key[k])  # LaTeX-specific hardcode-y replacement
     # Remove surrounding whitespace again and replace spaces with underscores
-    return [x.strip() for x in line.split('&')][:-1] # Address dangling ampersand
+    return [x.strip() for x in line.split('&')][:-1]  # Address dangling ampersand
 
 
 def load_table_df(n, skiplines, just_units=False):
@@ -64,16 +64,18 @@ def load_table_df(n, skiplines, just_units=False):
     These are LaTeX tables, unfortunately the only machine-readable table
     available from the online article. They need a lot of hardcoding.
     :param n: table number, must be 1, 2, or 3
+    :param skiplines: TODO
+    :param just_units: TODO
     """
-    with open(f"{martins_path}table{n}.tex", 'r') as f:
+    with open(f"{config.martins_path}table{n}.tex", 'r') as f:
         for i in range(skiplines):
-            f.readline() # Skip table setup
+            f.readline()  # Skip table setup
         colnames = split_line_and_apply_replace_key(f.readline())
         units = split_line_and_apply_replace_key(f.readline())
         if just_units:
             # Same files/operations for units, so option to stop here
             return pd.DataFrame(units, index=colnames, columns=['Units'])
-        f.readline() # Skip
+        f.readline()  # Skip
         df_list = []
         for i in range(12):
             # These lines are pretty well-behaved, but still need some fixing
@@ -89,7 +91,7 @@ def load_tables_df():
     Load all the Martins tables and also the units. All tables have the same indices,
     column names, and column units.
     This is the same return format as sternberg.load_tables_df.
-    Returns: dict(str(lum_class), DataFrame(values)), DataFrame(units)
+    :returns: dict(str(lum_class), DataFrame(values)), DataFrame(units)
     """
     df_dict = {table_info[x][1]: load_table_df(x, table_info[x][0]) for x in table_info}
     unit_df = load_table_df(1, table_info[1][0], just_units=True)

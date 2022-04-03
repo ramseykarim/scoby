@@ -23,6 +23,8 @@ column_name_table = f"{sternberg_path}colnames.txt"
 def table_name(spectral_subtype):
     """
     Filenames of Sternberg tables
+    :param spectral_subtype: TODO
+    :returns: TODO
     """
     # Spectral subtypes V, III, and I are available
     return f"{sternberg_path}class{spectral_subtype}.txt"
@@ -31,6 +33,7 @@ def table_name(spectral_subtype):
 def load_tables_df():
     """
     Load Sternberg tables as DataFrames into a dictionary
+    :returns: TODO
     """
     # Load column names and units
     with open(column_name_table, 'r') as f:
@@ -80,6 +83,11 @@ class S03_OBTables:
         self.memoized_type_names = {}
 
     def lookup_characteristic(self, spectral_type_tuple, characteristic):
+        """
+        :param spectral_type_tuple: TODO
+        :param characteristic: TODO
+        :returns: TODO
+        """
         # Spectral type tuple can be 3 or 4 elements (4th is peculiarity, ignored)
         # Characteristic is a valid column name, i.e. Teff or log_L
         if characteristic not in self.column_units.index:
@@ -110,6 +118,10 @@ class S03_OBTables:
     # self.sanitize_tuple used to be here but was moved to parse_sptype.py
 
     def lookup_units(self, characteristic):
+        """
+        :param characteristic: TODO
+        :returns: TODO
+        """
         if characteristic not in self.column_units.index:
             raise RuntimeError(f"{characteristic} is not a recognized column name.")
         return self.column_units['Units'].loc[characteristic]

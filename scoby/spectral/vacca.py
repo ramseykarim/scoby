@@ -9,6 +9,7 @@ __author__ = "Ramsey Karim"
 
 from . import parse_sptype
 
+
 def vacca_calibration(spectral_type_tuple, characteristic):
     """
     Coding up Vacca 1996 Table 4
@@ -19,6 +20,7 @@ def vacca_calibration(spectral_type_tuple, characteristic):
     :param spectral_type_tuple: spectral type expressed as a tuple
     :param characteristic: string characteristic descriptor. For Vacca,
         this would be "Teff" or "log_g"
+    :returns: TODO
     """
     spectral_type_number = parse_sptype.st_to_number(spectral_type_tuple)
     luminosity_class_number = parse_sptype.lc_to_number(spectral_type_tuple[2])
@@ -27,17 +29,20 @@ def vacca_calibration(spectral_type_tuple, characteristic):
         raise RuntimeWarning('LC I(a) stars above O9.5 are not supported by this calibration.')
     coefficients = {
         'Teff': (59.85, -3.10, -0.19, 0.11),
-        'log_g': (4.429, -0.140, -0.039, 0.022), # evolved g
+        'log_g': (4.429, -0.140, -0.039, 0.022),  # evolved g
     }
     multiplier = {'Teff': 1e3, 'log_g': 1}
+    # TODO: comment on why i used these letters (I think it's from the paper)
     S, L = spectral_type_number, luminosity_class_number
     A, B, C, D = coefficients[characteristic]
-    return (A + (B*S) + (C*L) + (D*S*L)) * multiplier[characteristic]
+    return (A + (B * S) + (C * L) + (D * S * L)) * multiplier[characteristic]
 
 
 def get_catalog_properties_vacca(cat, characteristic):
     """
     DataFrame-friendly version of vacca_calibration
     cat is a pandas DataFrame with a SpectralType_ReducedTuple column
+    :param cat: TODO
+    :param characteristic: TODO
     """
-    cat[characteristic+"_V96"] = cat.SpectralType_ReducedTuple.apply(vacca_calibration)
+    cat[characteristic + "_V96"] = cat.SpectralType_ReducedTuple.apply(vacca_calibration)

@@ -34,6 +34,7 @@ from . import vacca
 N_QUANTILE = 6
 UNCERTAINTY = True
 
+
 class STResolver:
     """
     Spectral Type Resolver
@@ -62,14 +63,14 @@ class STResolver:
         # T, Rstar, Mdot, vinf, D (1/f)
         #  (linear) L, M (averaging M, increasing error to 6)
         ("WN", "6"): (43000., 19.3, 8.5e-6, 2800., 10.,
-            1.15e6, 82.3),
+                      1.15e6, 82.3),
     }
 
     wr_uncertainties = {
         # Floats are 1-sigma uncertainties, tuples are bounds between which
         # the distribution will be assumed ot be uniform
         ("WN", "6"): (2000., 0.5, 8.5e-7, (1000., 3000.), (4., 10.),
-            0.15e6, 6.),
+                      0.15e6, 6.),
     }
 
     """
@@ -96,7 +97,6 @@ class STResolver:
     # Set up WR uncertainty sampling dictionary; keys are the same as above
     wr_samples = {}
 
-
     """
     Setup
     """
@@ -109,6 +109,12 @@ class STResolver:
             and other instances. If this is given, you don't need to
             explicitly link any of the tables or grids.
         """
+        # Initialized now, set in self.link_powr_grids()
+        self.powr_models = None
+        # Initialized now, set in self.link_leitherer_table()
+        self.leitherer_table = None
+        # Initialized now, set in self.link_calibration_table()
+        self.calibration_table = None
         # Dictionary holding the spectral types of binary components,
         #   decomposed as lists into all their possibilities
         self.spectral_types = {}
@@ -225,6 +231,7 @@ class STResolver:
         :param powr_dict: dictionary mapping grid_name to the grid object,
             represented by PoWRGrid instance. Grid name is PoWRGrid.grid_name
         """
+
         # Make a function to get params from a spectral type tuple and then
         # get a PoWR model for a spectral type tuple
         def find_model(st_tuple):
@@ -269,6 +276,7 @@ class STResolver:
             # Attach the PoWR grid object so we can look up the flux
             model_info['grid'] = selected_grid
             return model_info
+
         # Iterate over the self.spectral_types dictionary using that nifty
         # function I wrote
         self.powr_models = STResolver.map_to_components(find_model, (self.spectral_types,))
@@ -320,11 +328,14 @@ class STResolver:
             property_name = STResolver.property_names[name_stub]
             # Average the velocities, don't add
             dont_add = ('velocity' in name_stub)
+
             def property_getter_method(nsamples=200):
                 if not hasattr(self, property_name):
                     getattr(self, "populate_" + name_stub)()
                 return STResolver.resolve_uncertainty(getattr(self, property_name),
-                    dont_add=dont_add, return_samples=return_samples, nsamples=nsamples)
+                                                      dont_add=dont_add, return_samples=return_samples,
+                                                      nsamples=nsamples)
+
             return property_getter_method
         else:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
@@ -337,6 +348,7 @@ class STResolver:
             OB uses the LeithererTable (which needs to have been linked with
             self.link_leitherer_table(table)) and WR uses hardcoded values
         """
+
         # Make a mass loss rate finding function
         def find_mass_loss_rate(st_tuple, model_info):
             # Takes st_tuple (self.spectral_types) and PoWR model_info (self.powr_models)
@@ -354,12 +366,14 @@ class STResolver:
                 # Use Leitherer
                 paramx = self.calibration_table.lookup_characteristic('Teff', st_tuple)
                 paramy = self.calibration_table.lookup_characteristic('log_L', st_tuple)
-                mdot = 10.**self.leitherer_table.lookup_characteristic('log_Mdot', paramx, paramy)
+                mdot = 10. ** self.leitherer_table.lookup_characteristic('log_Mdot', paramx, paramy)
                 if np.isnan(mdot):
                     # Not found in tables; default to PoWR
-                    mdot = 10.**(model_info['LOG_MDOT'])
+                    mdot = 10. ** (model_info['LOG_MDOT'])
             return mdot * mdot_unit
-        self.mdot = STResolver.map_to_components(find_mass_loss_rate, (self.spectral_types, self.powr_models), f_list=u.Quantity)
+
+        self.mdot = STResolver.map_to_components(find_mass_loss_rate, (self.spectral_types, self.powr_models),
+                                                 f_list=u.Quantity)
 
     def populate_terminal_wind_velocity(self):
         """
@@ -370,6 +384,7 @@ class STResolver:
             and WR uses PoWR simulations
         Most of this code is copied from STResolver.get_mass_loss_rate
         """
+
         # Make a terminal velocity finding function
         def find_vinf(st_tuple, model_info):
             # Takes st_tuple (self.spectral_types) and PoWR model_info (self.powr_models)
@@ -391,6 +406,7 @@ class STResolver:
                     # Not found in tables; default to PoWR
                     vinf = model_info['V_INF']
             return vinf * vinf_unit
+
         self.vinf = STResolver.map_to_components(find_vinf, (self.spectral_types, self.powr_models), f_list=u.Quantity)
 
     def populate_momentum_flux(self):
@@ -398,9 +414,11 @@ class STResolver:
         Get the momentum flux in dynes by multipying mass loss rate by terminal
             velocity.
         """
+
         def find_mv_flux(mdot, vinf):
             # multiply these together and convert to dynes
             return (mdot * vinf).to(u.dyne)
+
         self.mv_flux = STResolver.map_to_components(find_mv_flux, (self.mdot, self.vinf), f_list=u.Quantity)
 
     def populate_mechanical_luminosity(self):
@@ -408,9 +426,11 @@ class STResolver:
         Get mechanical luminosity in erg/s by using mass loss rate and terminal
             velocity in the kinetic energy equation, 1/2 m v^2
         """
+
         def find_KE_rate(mdot, vinf):
             # multipy and convert to erg/s
-            return (mdot * vinf * vinf / 2.).to(u.erg/u.s)
+            return (mdot * vinf * vinf / 2.).to(u.erg / u.s)
+
         self.lmech = STResolver.map_to_components(find_KE_rate, (self.mdot, self.vinf), f_list=u.Quantity)
 
     def populate_FUV_flux(self):
@@ -421,6 +441,7 @@ class STResolver:
             ignore it and only use the other(s).
         If one of the binary components cannot be looked up at all, ignore it
         """
+
         # Make a FUV flux-finding function
         def find_FUV_flux(st_tuple, model_info):
             # model_info is a dictionary containing all the columns in modelparameters.txt
@@ -441,7 +462,9 @@ class STResolver:
                 # Memoize it
                 STResolver.fuv_memoization[model_identifier] = integrated_flux
                 return integrated_flux
-        self.fuv = STResolver.map_to_components(find_FUV_flux, (self.spectral_types, self.powr_models,), f_list=u.Quantity)
+
+        self.fuv = STResolver.map_to_components(find_FUV_flux, (self.spectral_types, self.powr_models,),
+                                                f_list=u.Quantity)
 
     def populate_ionizing_flux(self):
         """
@@ -449,6 +472,7 @@ class STResolver:
         Populate self.ionizing with possibilities
         Same rules as FUV flux for missing values
         """
+
         def find_ionizing_photon_flux(st_tuple, model_info):
             # Nearly identical to find_FUV_flux function
             if model_info is None:
@@ -461,13 +485,18 @@ class STResolver:
             else:
                 # Calculate it
                 wlflux = STResolver.get_model_spectrum(st_tuple, model_info)
+
                 def flux_to_photon_rate(wl, flux):
                     return flux / wl.to(u.erg, equivalencies=u.spectral())
-                integrated_photon_flux = powr.PoWRGrid.integrate_flux(wlflux, f=flux_to_photon_rate, low=13.6, high=None, result_unit=(1/u.s))
+
+                integrated_photon_flux = powr.PoWRGrid.integrate_flux(wlflux, f=flux_to_photon_rate, low=13.6,
+                                                                      high=None, result_unit=(1 / u.s))
                 # Memoize it
                 STResolver.ioniz_memoization[model_identifier] = integrated_photon_flux
                 return integrated_photon_flux
-        self.ionizing = STResolver.map_to_components(find_ionizing_photon_flux, (self.spectral_types, self.powr_models,), f_list=u.Quantity)
+
+        self.ionizing = STResolver.map_to_components(find_ionizing_photon_flux,
+                                                     (self.spectral_types, self.powr_models,), f_list=u.Quantity)
 
     def populate_stellar_mass(self):
         """
@@ -475,6 +504,7 @@ class STResolver:
         Populate self.mass with possibilities.
         Uses WR params for WRs, or Martins for OB
         """
+
         # Make mass-finding function
         def find_stellar_mass(st_tuple):
             # Takes spectral type
@@ -490,6 +520,7 @@ class STResolver:
                 # Nonstandard star; nothing we can do
                 mass = np.nan
             return mass * mass_unit
+
         self.mass = STResolver.map_to_components(find_stellar_mass, (self.spectral_types,), f_list=u.Quantity)
 
     def populate_bolometric_luminosity(self):
@@ -498,6 +529,7 @@ class STResolver:
         Populate self.lum with possibilities
         Use WR params for WRs, or Martins for OB
         """
+
         # Make luminosity-finding function
         def find_luminosity(st_tuple):
             # Takes spectral type
@@ -509,14 +541,13 @@ class STResolver:
             elif STResolver.isMS(st_tuple):
                 # OB star; use Martins calibration
                 luminosity = self.calibration_table.lookup_characteristic('log_L', st_tuple)
-                luminosity = 10.**luminosity
+                luminosity = 10. ** luminosity
             else:
                 # Nonstandard star; nothing we can do
                 luminosity = np.nan
             return luminosity * lum_unit
+
         self.lum = STResolver.map_to_components(find_luminosity, (self.spectral_types,), f_list=u.Quantity)
-
-
 
     """
     WR instance methods
@@ -585,8 +616,8 @@ class STResolver:
                 # Uniform uncertainty
                 # Half of samples from uniform distribution, other half are
                 # base parameter value. This weights toward the value.
-                param_samples = list(np.random.uniform(low=p_e[0], high=p_e[1], size=(nsamples//2)))
-                param_samples += [p]*(nsamples - len(param_samples))
+                param_samples = list(np.random.uniform(low=p_e[0], high=p_e[1], size=(nsamples // 2)))
+                param_samples += [p] * (nsamples - len(param_samples))
                 # Shuffle values
                 random.shuffle(param_samples)
                 # This list should contain no negative values
@@ -728,7 +759,7 @@ class STResolver:
         if STResolver.isWR(st_tuple):
             # WR behavior, scale spectrum
             luminosity = STResolver.get_WR_luminosity(st_tuple)
-            flux *= (luminosity / (10**5.3))
+            flux *= (luminosity / (10 ** 5.3))
         return wl, flux
 
     @staticmethod
@@ -834,10 +865,9 @@ class STResolver:
             reduce_func = np.mean if dont_add else np.sum
             return reduce_func(selected_values)
 
-
     @staticmethod
     def resolve_uncertainty(value_dictionary, nsamples=300, dont_add=False,
-        return_samples=False):
+                            return_samples=False):
         """
         Need to rewrite description because this isn't accurate anymore.
 
@@ -923,9 +953,9 @@ class STResolver:
 
     def __repr__(self):
         if self.isbinary():
-            text="<Binary:"
+            text = "<Binary:"
         else:
-            text="<Star:"
+            text = "<Star:"
         for st in self.spectral_types:
             stub = "/".join([parse_sptype.st_tuple_to_string(x) for x in self.spectral_types[st]])
             text += f"({stub})"
@@ -947,7 +977,7 @@ class STResolver:
             dictionary = self.spectral_types
         # Print a bunch of information out
         print(str(self))
-        space4 = " "*4
+        space4 = " " * 4
         for component in dictionary:
             print(f"|*{space4}{component}")
             for possibility, name in zip(dictionary[component], self.spectral_types[component]):
@@ -968,14 +998,13 @@ def mean_or_0(arg):
         return result
 
 
-
 class CatalogResolver:
     """
     A wrapper for STResolver when applied to a number of stars.
     """
 
     def __init__(self, sptype_list,
-        calibration_table=None, leitherer_table=None, powr_dict=None):
+                 calibration_table=None, leitherer_table=None, powr_dict=None):
         """
         :param sptype_list: some iterable sequence of string spectral types
              that could individually be read by STResolver
@@ -1053,7 +1082,7 @@ class CatalogResolver:
             star_mask = kwargs.pop('star_mask', None)
             if star_mask is None:
                 # Use all stars by default
-                star_mask = [True]*len(self.star_list) # Lazy "else" list creation
+                star_mask = [True] * len(self.star_list)  # Lazy "else" list creation
 
             # Check if we are mapping a function onto cluster realizations
             map_function = kwargs.pop('map_function', None)
@@ -1071,7 +1100,8 @@ class CatalogResolver:
                 # Lengths must match
                 assert all(len(kwargs[k]) == len(self.star_list) for k in listof_kws)
                 # This IS a list of kwargs dicts
-                list_of_kwargs = [{k.replace('listof_', ''): kwargs[k][i] for k in listof_kws} for i in range(len(self.star_list))]
+                list_of_kwargs = [{k.replace('listof_', ''): kwargs[k][i] for k in listof_kws} for i in
+                                  range(len(self.star_list))]
                 # Get rid of these kwargs from the primary kwargs dict
                 for k in listof_kws:
                     kwargs.pop(k)
@@ -1102,12 +1132,15 @@ class CatalogResolver:
                     reduce_func = np.mean if ('velocity' in name) else np.sum
                 # Check map_function argument and decide which function to use
                 if map_function is not None:
-                    return CatalogResolver.map_and_reduce_cluster(all_star_results, map_function, reduce_func=reduce_func, extremely_large=extremely_large)
+                    return CatalogResolver.map_and_reduce_cluster(all_star_results, map_function,
+                                                                  reduce_func=reduce_func,
+                                                                  extremely_large=extremely_large)
                 else:
                     return CatalogResolver.reduce_cluster(all_star_results, reduce_func=reduce_func)
             else:
                 # We are returning the results as is
                 return all_star_results
+
         return property_getter_method
 
     def __str__(self):
@@ -1131,7 +1164,7 @@ class CatalogResolver:
             same as the star_list in this class if it's to mean anything.
         """
         if star_mask is None:
-            star_mask = [True]*len(self.star_list)
+            star_mask = [True] * len(self.star_list)
         all_star_results = []
         for msk, s in zip(star_mask, self.star_list):
             if not msk:
@@ -1157,10 +1190,9 @@ class CatalogResolver:
         # Return the median value and error bars
         return median_and_uncertainty(cluster_samples)
 
-
     @staticmethod
     def map_and_reduce_cluster(star_samples, func_to_map, reduce_func=np.sum,
-        extremely_large=False):
+                               extremely_large=False):
         """
         Map a function onto each cluster realization before reducing it and
         sampling from those cluster realizations. This function expects (though
@@ -1209,11 +1241,14 @@ class CatalogResolver:
             """
             Uses numpy.memmap, extremely large data
             """
+
             def add_to_cluster_samples(cluster_samples, sample, j):
                 if not cluster_samples:
-                    cluster_samples['data'] = np.memmap(memmap_fn, dtype=np.float64, mode='w+', shape=(star_samples.shape[1], *sample.shape))
+                    cluster_samples['data'] = np.memmap(memmap_fn, dtype=np.float64, mode='w+',
+                                                        shape=(star_samples.shape[1], *sample.shape))
                 # Note the difference in which index is the "sample" index
                 cluster_samples['data'][j, :] = sample[:]
+
             def finalize_cluster_samples(cluster_samples):
                 return cluster_samples['data']
         else:
@@ -1221,20 +1256,22 @@ class CatalogResolver:
             Uses memory, small data
             """
             cluster_samples['data'] = []
+
             def add_to_cluster_samples(cluster_samples, sample, *args):
                 cluster_samples['data'].append(sample)
+
             def finalize_cluster_samples(cluster_samples):
                 return u.Quantity(cluster_samples['data'])
 
         # Loop through realizations (j dimension)
         for j in range(star_samples.shape[1]):
             # Extract a single cluster realization, len == number of stars
-            single_realization = star_samples[:, j] # 1D array
+            single_realization = star_samples[:, j]  # 1D array
             # Apply function to the realization array
-            single_realization = func_to_map(single_realization) # (n+1)D
+            single_realization = func_to_map(single_realization)  # (n+1)D
             if reduce_func is not False:
                 # Reduce the realization and add to the list
-                single_realization = reduce_func(single_realization, axis=0) # nD
+                single_realization = reduce_func(single_realization, axis=0)  # nD
             add_to_cluster_samples(cluster_samples, single_realization, j)
         # Cast to a 1+D Quantity array (more manageable than 2+D)
         cluster_samples = finalize_cluster_samples(cluster_samples)
@@ -1245,6 +1282,7 @@ class CatalogResolver:
 """
 Functions used by both STResolver and CatalogResolver
 """
+
 
 def median_and_uncertainty(realizations_array, extremely_large=False):
     """
@@ -1267,7 +1305,7 @@ def median_and_uncertainty(realizations_array, extremely_large=False):
         # Get upper and lower bounds, convert to uncertainties
         # flquantiles is built for 0th sample axis
         lower, upper = misc_utils.flquantiles(realizations_array, N_QUANTILE)
-        lo_err, hi_err = lower - value, upper - value # lower bound < 0
+        lo_err, hi_err = lower - value, upper - value  # lower bound < 0
         # Return median, (lower_bound, upper_bound) of samples
         return value, (lo_err, hi_err)
     else:
@@ -1276,25 +1314,26 @@ def median_and_uncertainty(realizations_array, extremely_large=False):
         up in blocks
         """
         original_shape = realizations_array.shape
-        new_shape = (original_shape[0], realizations_array.size//original_shape[0])
+        new_shape = (original_shape[0], realizations_array.size // original_shape[0])
         realizations_array.shape = new_shape
         # This calculation adopted from planck.py in helpss scripts
-        MiB = 1024*1024
-        step_size = 128*MiB // new_shape[0]
+        MiB = 1024 * 1024
+        step_size = 128 * MiB // new_shape[0]
         n_steps = new_shape[1] // step_size
         remainder = new_shape[1] % step_size
         print_threshold = 3
         if n_steps > print_threshold:
-            print(f"Using step size {step_size} of {new_shape[1]} total columns, for {n_steps} steps and {remainder} left over.")
+            print(
+                f"Using step size {step_size} of {new_shape[1]} total columns, for {n_steps} steps and {remainder} left over.")
         value = np.zeros(new_shape[1])
         for i in range(n_steps):
-            start, end = i*step_size, (i+1)*step_size
+            start, end = i * step_size, (i + 1) * step_size
             value[start:end] = np.median(realizations_array[:, start:end], axis=0)
             if n_steps > print_threshold:
                 sys.stdout.write(f"Calculating [{start:10d} : {end:10d}] of {new_shape[1]:10d}\r")
                 sys.stdout.flush()
         # Do remainder
-        start, end = n_steps*step_size, new_shape[1]
+        start, end = n_steps * step_size, new_shape[1]
         value[start:end] = np.median(realizations_array[:, start:end], axis=0)
         if n_steps > print_threshold:
             print("\nCalculated remainder, and done!")

@@ -14,12 +14,11 @@ __author__ = "Ramsey Karim"
 
 import numpy as np
 import pandas as pd
-from collections.abc import Sequence # abc = Abstract Base Class
+from collections.abc import Sequence  # abc = Abstract Base Class
 
 from . import sttable
 from .. import utils
-
-leitherer_path = f"{utils.misc_data_path}SpectralTypes/Leitherer/"
+from .. import config
 
 
 def open_single_table(n, just_units=False):
@@ -30,7 +29,7 @@ def open_single_table(n, just_units=False):
         Units are astropy.units.Unit readable
     :returns: pandas DataFrame
     """
-    fn = f"{leitherer_path}tbl{n}.dat"
+    fn = f"{config.leitherer_path}tbl{n}.dat"
     with open(fn, 'r') as f:
         for i in range(3):
             # Skip first 3 lines
