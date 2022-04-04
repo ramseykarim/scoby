@@ -1,9 +1,10 @@
-tbl1 has Teff, mass, vinf; input params
-tbl2 has Mdot and vinf; modeled params for Z = Z_solar
+tbl1 has ${\rm T_{eff}}$, mass, ${\rm v_{\inf}}$; input params
+tbl2 has Mdot and vinf; modeled params for ${\rm Z = Z_{\bigodot}}$
 
 
 
-From Leitherer 2010
+Tables from [Leitherer et al. 2010](https://ui.adsabs.harvard.edu/abs/2010ApJS..189..309L)
+
 @ARTICLE{2010ApJS..189..309L,
        author = {{Leitherer}, Claus and {Ortiz Ot{\'a}lvaro}, Paula A. and
          {Bresolin}, Fabio and {Kudritzki}, Rolf-Peter and {Lo Faro}, Barbara and

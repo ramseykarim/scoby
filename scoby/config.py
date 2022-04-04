@@ -18,9 +18,10 @@ import os
 from pathlib import Path
 
 # The Leitherer, Martins, and Sternberg tables have already been included in this module in the "data" folder
-leitherer_path = "../data/Leitherer"
-martins_path = "../data/Martins"
-sternberg_path = "../data/Sternberg"
+leitherer_path = "./data/Leitherer"
+martins_path = "./data/Martins"
+sternberg_path = "./data/Sternberg"
+
 
 """
 PoWR model directory

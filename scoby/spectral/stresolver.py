@@ -23,9 +23,7 @@ import os
 from astropy import units as u
 from astropy import constants as cst
 
-from ... import misc_utils
-# put flquantiles in utils (even though it's a duplicate of something I have written elsewhere)
-
+from .. import utils
 from .. import config
 
 from . import powr
@@ -1310,7 +1308,7 @@ def median_and_uncertainty(realizations_array, extremely_large=False):
         value = np.median(realizations_array, axis=0)
         # Get upper and lower bounds, convert to uncertainties
         # flquantiles is built for 0th sample axis
-        lower, upper = misc_utils.flquantiles(realizations_array, N_QUANTILE)
+        lower, upper = utils.flquantiles(realizations_array, N_QUANTILE)
         lo_err, hi_err = lower - value, upper - value  # lower bound < 0
         # Return median, (lower_bound, upper_bound) of samples
         return value, (lo_err, hi_err)

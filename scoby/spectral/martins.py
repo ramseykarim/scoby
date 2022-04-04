@@ -21,6 +21,7 @@ late O stars...
 
 Created: June 2, 2020
 """
+import os.path
 
 import pandas as pd
 
@@ -67,7 +68,7 @@ def load_table_df(n, skiplines, just_units=False):
     :param skiplines: TODO
     :param just_units: TODO
     """
-    with open(f"{config.martins_path}table{n}.tex", 'r') as f:
+    with open(os.path.join(config.martins_path, f"table{n}.tex"), 'r') as f:
         for i in range(skiplines):
             f.readline()  # Skip table setup
         colnames = split_line_and_apply_replace_key(f.readline())

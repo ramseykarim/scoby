@@ -9,8 +9,6 @@ __author__ = "Ramsey Karim"
 import numpy as np
 from scipy.interpolate import interp1d
 
-from ... import misc_utils
-# Put polynomial in utils (even though it's a copy of something I have written elsewhere)
 
 from .. import utils
 
@@ -66,7 +64,7 @@ def fit_characteristic(df_lumclass, characteristic):
             return float(interp_from_number(spectral_type_number))
         elif hi < spectral_type_number <= hi + 3:
             # Extrapolate, but not too far from high limit
-            return misc_utils.polynomial(spectral_type_number, extrap_fit)
+            return utils.polynomial(spectral_type_number, extrap_fit)
         else:
             # Either less than low limit (unlikely) or too far past high limit
             return INVALID_SPTYPE_PROPERTY_FLAG
