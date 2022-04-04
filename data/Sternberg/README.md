@@ -1,10 +1,10 @@
-(Nov 12, 2019) I changed the O4.5 I Mdot mass-loss rate from 1.3e-4 to 1.3e-5
-on suspicion that it was a typo. Every other value varies smoothly with Teff.
+(Nov 12, 2019) I changed the `O4.5 I` Mdot mass-loss rate from `1.3e-4` to `1.3e-5`
+on suspicion that it was a typo. Every other value varies smoothly with T<sub>eff</sub>.
 This value would vary smoothly if the exponent were -5.
 
 These tables are from [Sternberg et al. 2003](https://ui.adsabs.harvard.edu/abs/2003ApJ...599.1333S)
 
-
+```
 @ARTICLE{2003ApJ...599.1333S,
        author = {{Sternberg}, Amiel and {Hoffmann}, Tadziu L. and {Pauldrach}, A.~W.~A.},
         title = "{Ionizing Photon Emission Rates from O- and Early B-Type Stars and Clusters}",
@@ -22,5 +22,5 @@ archivePrefix = {arXiv},
        adsurl = {https://ui.adsabs.harvard.edu/abs/2003ApJ...599.1333S},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
-
+```
 
