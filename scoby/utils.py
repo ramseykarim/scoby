@@ -117,7 +117,8 @@ def distance_from_point_pixelgrid(point_coord, w, distance_los):
     # Remember that world_to_array_index returns integers and world_to_pixel returns floats
     grid_shape = w.array_shape
     ref_pixel = w.world_to_pixel(point_coord)[::-1]
-    # Get physical separation per pixel along each axis at 0,0 (assume they do not change -- this should be ok for small regions)
+    # Get physical separation per pixel along each axis at 0,0 (assume they do not change -- this should be ok for
+    # small regions)
     ds_di = w.array_index_to_world(*ref_pixel).separation(w.array_index_to_world(ref_pixel[0] + 1, ref_pixel[1])).to(
         'rad').to_value() * distance_los
     ds_dj = w.array_index_to_world(*ref_pixel).separation(w.array_index_to_world(ref_pixel[0], ref_pixel[1] + 1)).to(

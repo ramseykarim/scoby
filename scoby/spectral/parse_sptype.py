@@ -33,7 +33,6 @@ slashdash_re = '(/|-)'
 
 INVALID_STAR_FLAG = float('NaN')
 
-
 """
 ===============================================================================
 ================== Spectral Type parsing via regex ============================
@@ -71,7 +70,7 @@ def st_parse_type(spectral_type_string):
     lumclass = re_parse_helper(roman_num_re, spectral_type_string)
     subtype = re_parse_helper(number_re, spectral_type_string)
     lettertype = re_parse_helper(letter_re, spectral_type_string)
-    return (lettertype, subtype, lumclass, pec)
+    return lettertype, subtype, lumclass, pec
 
 
 def st_parse_slashdash(spectral_type_string, intercept_WR=True):
@@ -145,10 +144,10 @@ def st_parse_slashdash(spectral_type_string, intercept_WR=True):
             if '-' in match_subclass.group():
                 # Dash
                 # Numbers should all be multiples of 0.5
-                subclass_bounds = [int(float(x)*2) for x in match_subclass.group().split('-')]
+                subclass_bounds = [int(float(x) * 2) for x in match_subclass.group().split('-')]
                 # There should be at most one dash
                 assert len(subclass_bounds) == 2
-                subclass_options = [x/2. for x in range(subclass_bounds[0], subclass_bounds[1]+1)]
+                subclass_options = [x / 2. for x in range(subclass_bounds[0], subclass_bounds[1] + 1)]
                 for sc_option in subclass_options:
                     sc_option = str(sc_option).replace('.0', '')
                     possible_classes.append(possible_lumclass.replace(match_subclass.group(), sc_option))
@@ -162,10 +161,10 @@ def st_parse_slashdash(spectral_type_string, intercept_WR=True):
             # Separate dash and slash behavior
             if '-' in match_crossclass.group():
                 # Dash; convert everything to numbers. Should be multiples of 0.5
-                class_bounds = [int(st_to_number(x)*2) for x in match_crossclass.group().split('-')]
+                class_bounds = [int(st_to_number(x) * 2) for x in match_crossclass.group().split('-')]
                 # There should be at most one dash
                 assert len(class_bounds) == 2
-                class_options = [x/2. for x in range(class_bounds[0], class_bounds[1]+1)]
+                class_options = [x / 2. for x in range(class_bounds[0], class_bounds[1] + 1)]
                 for c_option in class_options:
                     c_option = ''.join(number_to_st(c_option))
                     possible_classes.append(possible_lumclass.replace(match_crossclass.group(), c_option))
@@ -189,7 +188,6 @@ def st_parse_binary(spectral_type_string):
         return [spectral_type_string]
     else:
         return spectral_type_string.split('+')
-
 
 
 def st_tuple_to_string(t):
@@ -223,7 +221,7 @@ def st_to_number(spectral_type):
     elif t not in standard_types:
         return INVALID_STAR_FLAG
     else:
-        return standard_types.index(t)*10. + float(subt)
+        return standard_types.index(t) * 10. + float(subt)
 
 
 def number_to_st(spectral_type_number):
@@ -233,9 +231,9 @@ def number_to_st(spectral_type_number):
     Returns the tuple expression of spectral type; type and subtype only
         e.g. 11.5 -> ('B', '1.5')
     """
-    t = int(spectral_type_number//10)
+    t = int(spectral_type_number // 10)
     subt = spectral_type_number % 10
-    return (standard_types[t], f"{subt:.1f}".replace(".0", ""))
+    return standard_types[t], f"{subt:.1f}".replace(".0", "")
 
 
 def lc_to_number(lumclass):

@@ -8,6 +8,7 @@ Reviewed June 11, 2020, looks like it doesn't need any edits.
 """
 __author__ = "Ramsey Karim"
 
+import os.path
 import re
 import numpy as np
 import pandas as pd
@@ -16,11 +17,10 @@ import matplotlib.pyplot as plt
 from astropy import units as u
 
 from .. import utils
-
-
-powr_directory = f"{utils.misc_data_path}SpectralTypes/PoWR/"
+from .. import config
 
 AVAILABLE_POWR_GRIDS = ['OB', 'WNE', 'WNL', 'WNL-H50', 'WC']
+# TODO change this to check what grids are available in config.powr_path
 
 
 def skiplines(file_handle, n_lines):
@@ -30,7 +30,7 @@ def skiplines(file_handle, n_lines):
 
 
 def load_powr_grid_info(grid_name):
-    fn = f"{powr_directory}{grid_name}/modelparameters.txt"
+    fn = os.path.join(config.powr_path, f"{grid_name}/modelparameters.txt")
     with open(fn) as f:
         skiplines(f, 5)
         colnames = [s.replace(' ', '_') for s in re.split('\s{2,}', f.readline().strip())]
@@ -45,13 +45,16 @@ def trim_Teff(Teff):
     # Rounds Teff to nearest kK
     return round(Teff, ndigits=-3)
 
+
 def trim_logTeff(Teff):
     # Rounds log Teff to nearest 20th (e.g. 4.65, 4.7, 4.75, ...)
-    return round(Teff*20)/20
+    return round(Teff * 20) / 20
+
 
 def trim_logg(log_g):
     # Rounds log_g to nearest even-decimal
-    return round(log_g*5)/5
+    return round(log_g * 5) / 5
+
 
 def trim_logRt(Rt):
     # Rounds log Rt to nearest 10th
@@ -133,7 +136,7 @@ class PoWRGrid:
                 # If T is in K and log_g spans ~3-5 max, this will bias the "nearest" towards temperature....
                 # We should probably keep a map of "parameter number" like in their thing
                 # It just needs to be perfectly even/cartesian (TODO if/when we overhaul this thing)
-                return self.grid_info.loc[((self.paramx - qparamx)**2 + (self.paramy - qparamy)**2).idxmin()]
+                return self.grid_info.loc[((self.paramx - qparamx) ** 2 + (self.paramy - qparamy) ** 2).idxmin()]
             else:
                 # Something failed (probably an interp for log g) so return None
                 # If log g, then likely cause is outside convex hull of CloughTocher2DInterpolator
@@ -142,7 +145,7 @@ class PoWRGrid:
             return model.loc[model.index[0]]
             # if model.empty:
             #     raise RuntimeError(f"Could not find x: {qparamx} / y: {qparamy} model in the {self.grid_name} grid.")
-        return model
+        return model  # TODO unreachable? was there a purpose for this a while back? should it be reachable?
 
     def get_model_filename(self, *args):
         """
@@ -159,7 +162,7 @@ class PoWRGrid:
         # "default" gets evaluated so I cannot put model['MODEL'] there.
         if model_id is None:
             model_id = model["MODEL"]
-        return f'{powr_directory}{self.grid_name}/{self.grid_name.lower()}{suffix}_{model_id}_sed.txt'
+        return os.path.join(config.powr_path, f'{self.grid_name}/{self.grid_name.lower()}{suffix}_{model_id}_sed.txt')
 
     def get_model_spectrum(self, *args):
         """
@@ -169,11 +172,11 @@ class PoWRGrid:
         (see self.get_model_filename)
         """
         data = np.genfromtxt(self.get_model_filename(*args))
-        wl = (10**data[:, 0]) * u.Angstrom
+        wl = (10 ** data[:, 0]) * u.Angstrom
         # flux comes in (log) erg/ (cm2 s A) at 10pc, so convert to area-integrated flux
         flux_units = (u.erg / (u.s * u.Angstrom))
-        total_flux_units = flux_units * (4*np.pi * (10*u.pc.to('cm'))**2)
-        flux = (10**data[:, 1]) * total_flux_units
+        total_flux_units = flux_units * (4 * np.pi * (10 * u.pc.to('cm')) ** 2)
+        flux = (10 ** data[:, 1]) * total_flux_units
         return wl, flux
 
     def get_params(self):
@@ -251,9 +254,8 @@ class PoWRGrid:
             self.TL_interp = utils.fit_characteristic(xy_delaunay, self.grid_info['LOG_G'])
         return self.TL_interp(np.log10(Teff), logL)
 
-
     def plot_grid_space(self, c=None, clabel=None, setup=True, show=True,
-        **plot_kwargs):
+                        **plot_kwargs):
         if setup:
             plt.figure(figsize=(13, 9))
         plt.scatter(self.paramx, self.paramy, c=c, **plot_kwargs)
@@ -269,8 +271,8 @@ class PoWRGrid:
 
     @staticmethod
     def plot_spectrum(*args, setup=True, show=True, fuv=False,
-            xlim=None, ylim=None, xunit=None,
-            xlog=True, ylog=True, **kwargs):
+                      xlim=None, ylim=None, xunit=None,
+                      xlog=True, ylog=True, **kwargs):
         if len(args) == 2:
             wl, flux = args
         else:
@@ -316,10 +318,11 @@ class PoWRGrid:
                 # See if the new units are compatible with the assigned result_unit
                 (integrand.unit * wl.unit).to(result_unit)
             except u.UnitConversionError as e:
-                print(f"Assigned result_unit ({result_unit.unit}) incompatible with the actual units ({integrand.unit}); {e}")
+                print(
+                    f"Assigned result_unit ({result_unit.unit}) incompatible with the actual units ({integrand.unit}); {e}")
                 # Just decompose the units and return that
                 # The "1" there makes it a Quantity, so your CompositeUnit doesn't have scale after decomposition
-                result_unit = (1*integrand.unit * wl.unit).decompose().unit
+                result_unit = (1 * integrand.unit * wl.unit).decompose().unit
         else:
             integrand = flux
         mask = bandpass_mask(wl, **kwargs)
@@ -329,6 +332,6 @@ class PoWRGrid:
 
     @staticmethod
     def calculate_Rt(Rstar, Mdot, vinf, D):
-        v = vinf/2500.
-        M = Mdot*1e4 * np.sqrt(D)
-        return Rstar * (v/M)**(2./3)
+        v = vinf / 2500.
+        M = Mdot * 1e4 * np.sqrt(D)
+        return Rstar * (v / M) ** (2. / 3)

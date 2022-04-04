@@ -7,17 +7,20 @@ Created: June 2, 2020
 """
 __author__ = "Ramsey Karim"
 
+import os.path
+
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 
 from . import parse_sptype
+from .parse_sptype import st_to_number
 
 from .. import utils
+from .. import config
 
-sternberg_path = f"{utils.misc_data_path}SpectralTypes/Sternberg/"
-spectypes_table = f"{sternberg_path}spectypes.txt"
-column_name_table = f"{sternberg_path}colnames.txt"
+spectypes_table = os.path.join(config.sternberg_path, "spectypes.txt")
+column_name_table = os.path.join(config.sternberg_path, "colnames.txt")
 
 
 def table_name(spectral_subtype):
@@ -27,7 +30,7 @@ def table_name(spectral_subtype):
     :returns: TODO
     """
     # Spectral subtypes V, III, and I are available
-    return f"{sternberg_path}class{spectral_subtype}.txt"
+    return os.path.join(config.sternberg_path, f"class{spectral_subtype}.txt")
 
 
 def load_tables_df():
@@ -39,8 +42,8 @@ def load_tables_df():
     with open(column_name_table, 'r') as f:
         colnames = f.readline().split()
         units = f.readline().replace('1/cm2s', 'cm-2s-1').split()
-    # Load spectral types;;;; DO WE USE THESE EVER??
-    # Editorial note (April 29, 2020) it seems these are just a list of spectral types, which doesn't seem all that special
+    # Load spectral types;;;; DO WE USE THESE EVER?? Editorial note (April 29, 2020) it seems these are just a list
+    # of spectral types, which doesn't seem all that special
     with open(spectypes_table, 'r') as f:
         spectypes = f.readline().split()
     # Create units table
@@ -56,13 +59,16 @@ def load_tables_df():
 def fit_characteristic(df_subtype, characteristic):
     # Get characteristic interp (i.e. "Teff")
     # from df_subtype (i.e. spectral_type_df_dict["III"])
-    independent, dependent = np.array([st_to_number(x) for x in df_subtype.index]), df_subtype[characteristic]
+    independent, dependent = np.array([parse_sptype.st_to_number(x) for x in df_subtype.index]), df_subtype[
+        characteristic]
     interp_from_number = interp1d(independent, dependent, kind='linear')
+
     def interp_function(spectral_type):
         try:
             return interp_from_number(st_to_number(spectral_type))
         except:
             return np.nan
+
     return interp_function
 
 
@@ -77,6 +83,7 @@ class S03_OBTables:
         map that Vacca used. This is NOT Vacca's Teff, log_g calibration (though
         Sternberg says they use Vacca's calibrations for some things.)
     """
+
     def __init__(self):
         self.star_tables, self.column_units = load_tables_df()
         self.memoized_interpolations = {}
@@ -100,9 +107,9 @@ class S03_OBTables:
         lettertype, subtype, lumclass = spectral_type_tuple
         # Get subtype DataFrame
         df_lumclass = self.star_tables[lumclass]
-        if lettertype+subtype in df_lumclass.index:
+        if lettertype + subtype in df_lumclass.index:
             # If the spectral type is in this table, return value for characteristic
-            return df_lumclass[characteristic].loc[lettertype+subtype]
+            return df_lumclass[characteristic].loc[lettertype + subtype]
         else:
             # If type is not in table, interpolate between types using number approximation
             if spectral_type_tuple in self.memoized_interpolations:
@@ -136,4 +143,5 @@ def get_catalog_properties_sternberg(cat, characteristic):
     TODO: delet this
     """
     sternberg_tables = S03_OBTables()
-    cat[characteristic+'_S03'] = cat.SpectralType_ReducedTuple.apply(sternberg_tables.lookup_characteristic, args=(characteristic,))
+    cat[characteristic + '_S03'] = cat.SpectralType_ReducedTuple.apply(sternberg_tables.lookup_characteristic,
+                                                                       args=(characteristic,))

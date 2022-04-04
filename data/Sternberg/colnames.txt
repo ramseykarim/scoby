@@ -1,0 +1,2 @@
+Teff log_g Rstar log_L M v_terminal Mdot log_QH log_QHe log_qH log_qHe
+K cm/s Rsun Lsun Msun km/s Msun/yr 1/s 1/s 1/cm2s 1/cm2s

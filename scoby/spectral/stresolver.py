@@ -11,6 +11,7 @@ Each spectral type will be wrapped in an instance of this object. The object
 
 Created: April 29, 2020
 Split from catalog_spectral.py (previously readstartypes.py) on June 2, 2020
+Edited lightly on April 4, 2022 while I split this whole software into a standalone package
 """
 __author__ = "Ramsey Karim"
 
@@ -23,6 +24,9 @@ from astropy import units as u
 from astropy import constants as cst
 
 from ... import misc_utils
+# put flquantiles in utils (even though it's a duplicate of something I have written elsewhere)
+
+from .. import config
 
 from . import powr
 from . import parse_sptype
@@ -869,6 +873,7 @@ class STResolver:
     def resolve_uncertainty(value_dictionary, nsamples=300, dont_add=False,
                             return_samples=False):
         """
+        TODO:
         Need to rewrite description because this isn't accurate anymore.
 
 
@@ -888,6 +893,7 @@ class STResolver:
             about calling np.array on astropy Quantities, but it didn't.
         TODO: delete (or heavily repurpose) this function, since it doesn't
             accurately handle errors (June 12, 2020)
+            (I think this comment is no longer accurate -april 4, 2022)
         :param value_dictionary: dictionary containing values associated with
             each possibility, which are in turn associated with binary components.
             Value dictionary should be structured like self.spectral_types.
@@ -1095,7 +1101,7 @@ class CatalogResolver:
             # Handle kwarg lists
             listof_kws = [k for k in kwargs.keys() if 'listof_' in k]
             # listof_kws refers to kwarg keys that start with "listof_"
-            # NOT a list of kwargs/keywords (though it is also that...)
+            # NOT a list of kwargs/keywords (though it is also that...) # TODO what????? make this workflow clear
             if listof_kws:
                 # Lengths must match
                 assert all(len(kwargs[k]) == len(self.star_list) for k in listof_kws)
@@ -1109,7 +1115,7 @@ class CatalogResolver:
                 # Empty list so the generator works fine
                 list_of_kwargs = []
             # Make a generator that will return empty dictionaries if there aren't elements
-            iter_lok = iter(list_of_kwargs)
+            iter_lok = iter(list_of_kwargs)  # l.o.k. = list of keywords
             individual_kwargs = (next(iter_lok, {}) for x in range(len(self.star_list)))
 
             # Prepare to collect quantity arrays
@@ -1236,7 +1242,7 @@ class CatalogResolver:
         """
         # Prepare cluster_samples list
         cluster_samples = {}
-        memmap_fn = "/home/ramsey/Downloads/STRESOLVER_MEMMAP_oktodelete.dat"
+        memmap_fn = os.path.join(config.temp_dir, "STRESOLVER_MEMMAP_oktodelete.dat")
         if extremely_large:
             """
             Uses numpy.memmap, extremely large data

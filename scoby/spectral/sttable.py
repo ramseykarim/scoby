@@ -6,16 +6,15 @@ Created: June 8, 2020
 """
 __author__ = "Ramsey Karim"
 
-
 import numpy as np
 from scipy.interpolate import interp1d
 
 from ... import misc_utils
+# Put polynomial in utils (even though it's a copy of something I have written elsewhere)
 
 from .. import utils
 
 from . import parse_sptype
-
 
 INVALID_SPTYPE_PROPERTY_FLAG = np.nan
 
@@ -27,6 +26,7 @@ def sanitize_characteristic(function_to_decorate):
     The "characteristic" parameter must be the first* argument
     The real first argument is the instance of STTable
     """
+
     def decorated_function(*args):
         self = args[0]
         characteristic = args[1]
@@ -53,8 +53,9 @@ def fit_characteristic(df_lumclass, characteristic):
     # Get the limits in which interpolation is valid
     lo, hi = independent_variable.min(), independent_variable.max()
     # Prepare a linear extrapolation based on the last three points
-    lastN = 3
-    extrap_fit = np.polyfit(independent_variable[-lastN:], dependent_variable[-lastN:], deg=1)
+    last_n = 3
+    extrap_fit = np.polyfit(independent_variable[-last_n:], dependent_variable[-last_n:], deg=1)
+
     def interp_function(spectral_type):
         spectral_type_number = parse_sptype.st_to_number(spectral_type)
         # Check if it's past the interp limits and polyfit if it is, up to a
@@ -69,6 +70,7 @@ def fit_characteristic(df_lumclass, characteristic):
         else:
             # Either less than low limit (unlikely) or too far past high limit
             return INVALID_SPTYPE_PROPERTY_FLAG
+
     return interp_function
 
 
@@ -88,6 +90,7 @@ class STTable:
     exactly, and next will interpolate using the "spectral type to number"
     map that Vacca used.
     """
+
     def __init__(self, table_dict, col_units):
         self.table_dict = table_dict
         self.column_units = col_units
@@ -115,7 +118,7 @@ class STTable:
         """
         # Discard peculiarity and sanitize input
         spectral_type_tuple = parse_sptype.sanitize_tuple(spectral_type_tuple[:3])
-        if not spectral_type_tuple: # Handle sanitize_tuple: False
+        if not spectral_type_tuple:  # Handle sanitize_tuple: False
             # Need a good flag for nonstandard spectral types, etc
             return INVALID_SPTYPE_PROPERTY_FLAG
         # Split up tuple
@@ -126,9 +129,9 @@ class STTable:
             lumclass = 'III'
         # Get luminosity class DataFrame from self.table_dict
         df_lumclass = self.table_dict[lumclass]
-        if lettertype+subtype in df_lumclass.index:
+        if lettertype + subtype in df_lumclass.index:
             # If spectral type is in this table, just return the characteristic
-            return df_lumclass[characteristic].loc[lettertype+subtype]
+            return df_lumclass[characteristic].loc[lettertype + subtype]
         else:
             # If type not in table, interpolate between types using sptype number.
             # "characteristic-lumclass tuple" uniquely selects a curve
