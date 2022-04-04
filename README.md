@@ -9,7 +9,7 @@ It is similar to the cluster property synthesis done in the [Starburst99](https:
 
 To use this code, you will have to download some of the POWR models.
 
-I have been developing this software since early 2020 but it was buried in [a sea of other code](https://github.com/ramseykarim/feedback) for my FEEDBACK project thesis work.
+I have been developing this software since 2019 but it was buried in [a sea of other code](https://github.com/ramseykarim/feedback) for my FEEDBACK project thesis work.
 I am now officially splitting it off as its own package.
 
 Feel free to adapt this code to your own needs or contact me for help!
