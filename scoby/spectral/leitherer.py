@@ -11,10 +11,11 @@ Created: June 8, 2020
 """
 __author__ = "Ramsey Karim"
 
+import os.path
 
 import numpy as np
 import pandas as pd
-from collections.abc import Sequence  # abc = Abstract Base Class
+from collections.abc import Sequence  # abc = Abstract Base Class # also not sure what I used this for
 
 from . import sttable
 from .. import utils
@@ -29,7 +30,7 @@ def open_single_table(n, just_units=False):
         Units are astropy.units.Unit readable
     :returns: pandas DataFrame
     """
-    fn = f"{config.leitherer_path}tbl{n}.dat"
+    fn = os.path.join(config.leitherer_path, f"tbl{n}.dat")
     with open(fn, 'r') as f:
         for i in range(3):
             # Skip first 3 lines

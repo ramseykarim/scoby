@@ -1,3 +1,10 @@
+### Specific to this project
+# In case you want to put the PoWR models in data with the other data
+data/PoWR/
+
+# No images
+*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

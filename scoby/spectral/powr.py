@@ -164,7 +164,7 @@ class PoWRGrid:
             model_id = model["MODEL"]
         return os.path.join(config.powr_path, f'{self.grid_name}/{self.grid_name.lower()}{suffix}_{model_id}_sed.txt')
 
-    def get_model_spectrum(self, *args):
+    def get_model_spectrum(self, *args) -> tuple[u.Quantity, u.Quantity]:
         """
         Passes args to self.get_model_filename, which either passes them to
         self.get_model_info (which passes to self.parse_query_params) or
@@ -255,6 +255,7 @@ class PoWRGrid:
         return self.TL_interp(np.log10(Teff), logL)
 
     def plot_grid_space(self, c=None, clabel=None, setup=True, show=True,
+                        savename=None, metadata=None,
                         **plot_kwargs):
         if setup:
             plt.figure(figsize=(13, 9))
@@ -263,6 +264,8 @@ class PoWRGrid:
         plt.ylabel(self.paramy_name)
         if (c is not None) and not (isinstance(c, str)):
             plt.colorbar(label=clabel)
+        if savename is not None:
+            plt.savefig(savename, metadata=metadata)
         if show:
             plt.show()
 
@@ -271,6 +274,7 @@ class PoWRGrid:
 
     @staticmethod
     def plot_spectrum(*args, setup=True, show=True, fuv=False,
+                      savename=None, metadata=None,
                       xlim=None, ylim=None, xunit=None,
                       xlog=True, ylog=True, **kwargs):
         if len(args) == 2:
@@ -296,6 +300,8 @@ class PoWRGrid:
                 plt.xscale('log')
             if ylog:
                 plt.yscale('log')
+        if savename is not None:
+            plt.savefig(savename, metadata=metadata)
         if show:
             plt.legend()
             plt.show()

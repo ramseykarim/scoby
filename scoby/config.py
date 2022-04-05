@@ -17,10 +17,18 @@ __author__ = "Ramsey Karim"
 import os
 from pathlib import Path
 
+# Any data for this project that I am including in the Github repo
+# You could put PoWR models here too, I have data/PoWR/ in the .gitignore
+data_path = "./data"
+
 # The Leitherer, Martins, and Sternberg tables have already been included in this module in the "data" folder
-leitherer_path = "./data/Leitherer"
-martins_path = "./data/Martins"
-sternberg_path = "./data/Sternberg"
+leitherer_path = os.path.join(data_path, "Leitherer")
+martins_path = os.path.join(data_path, "Martins")
+sternberg_path = os.path.join(data_path, "Sternberg")
+
+test_data_path = os.path.join(data_path, "test_data")
+
+debug_img_path = "./tests/debug"
 
 
 """
@@ -83,11 +91,25 @@ That folder, PoWR/, should contain the subfolders: OB, WNE, WNL-H50, etc (see ab
 At minimum, you need the OB grid (OB-I on PoWR, but name it "OB" in your directory structure). You don't need the WR
 grids if you aren't using WR stars.
 """
+# PoWR Path below!!!
+#
+#
+#
+#
 # This is my PoWR path! Change it to yours!!!!!
 powr_path = "/home/ramsey/Documents/Research/Feedback/misc_data/SpectralTypes/PoWR"
+#
+#
+#
+#
+#
+#
+# PoWR Path ^^^^^^^^^
+# Catch missing powr_path
 if not os.path.isdir(powr_path):
     raise FileNotFoundError(f"Could not find the PoWR grid path <{powr_path}>. You will need to download some PoWR "
-                            f"models in order to run scoby. Check the documentation on GitHub for instructions.")
+                            f"models in order to run scoby. Check the documentation on GitHub for instructions. "
+                            f"Once you have downloaded them, you'll need to specify the path to them in config.py")
 
 
 """

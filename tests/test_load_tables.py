@@ -14,14 +14,15 @@ __author__ = "Ramsey"
 import unittest
 import os
 
-import numpy as np
-import matplotlib.pyplot as plt
+from astropy import units as u
 
-# Hopefully this works!
 import scoby
 
 
 class TestConfig(unittest.TestCase):
+    """
+    File path configuration and loading files and making sure tables look ok (have numbers in them)
+    """
 
     def test_run_config(self):
         # Config has a little bit of code in it, so I'm checking to see if it imports alright
@@ -29,26 +30,46 @@ class TestConfig(unittest.TestCase):
         self.assertTrue(os.path.isdir(config.temp_dir))
         self.assertTrue(os.path.isdir(config.powr_path))
 
-    def test_plot_sptype_calibration_stuff(self):
-        dfs, col_units = scoby.spectral.sternberg.load_tables_df()
-        dfs2, col_units2 = scoby.spectral.martins.load_tables_df()
-        colors = {'I': 'blue', 'III': 'green', 'V': 'red'}
-        plt.figure(figsize=(14, 9))
-        Teff, log_g = 'Teff', 'log_g'
-        # The characteristics to go on each axis
-        char_x, char_y = Teff, "log_L"
-        for lc in scoby.spectral.parse_sptype.luminosity_classes:
-            st_sb03 = np.array([scoby.spectral.parse_sptype.st_to_number(i) for i in dfs[lc].index])
-            st_m05 = np.array([scoby.spectral.parse_sptype.st_to_number(i) for i in dfs2[lc].index])
-            independent, dependent = dfs[lc][char_x], dfs[lc][char_y]
-            ind2, dep2 = dfs2[lc]['Teff'], dfs2[lc][char_y]
-            plt.plot(independent, dependent, 'x', color=colors[lc], label='S03')
-            plt.plot(ind2, dep2, '.', color=colors[lc], label='M05')
-            fit = scoby.spectral.sternberg.interp1d(independent, dependent, kind='linear')
-            x = np.linspace(independent.min(), independent.max(), 50)
-            plt.plot(x, fit(x), '--', label=f'fit to Sternberg+2003 class {lc}', color=colors[lc])
+    def test_martins_calibration_load(self):
+        df1, u1 = scoby.spectral.martins.load_tables_df()
+        df2, u2 = scoby.spectral.sternberg.load_tables_df()
+        print("\n<MARTINS load>")
+        print(u2.index)
+        for i in u2.Units:
+            print(i, u.Unit(i))
+        print(u1.index)
+        for i in u1.Units:
+            print(i, u.Unit(i))
+        print("</MARTINS load>\n")
 
-        plt.legend()
-        plt.ylabel(char_y), plt.xlabel(char_x)
-        plt.gca().invert_xaxis()
-        plt.show()
+    def test_martins_calibration(self):
+        print("\n<MARTINS calib>")
+        df1, u1 = scoby.spectral.martins.load_tables_df()
+        print(df1['V'])
+        df2, u2 = scoby.spectral.sternberg.load_tables_df()
+        print(df2['V'])
+        print('-----')
+        print(u1)
+        print(u2)
+        print("</MARTINS calib>\n")
+
+    def test_sttables(self):
+        """
+        I used this to confirm that STTable gives good looking results
+        for both Sternberg and Martins
+        """
+        df1, u1 = scoby.spectral.martins.load_tables_df()
+        df2, u2 = scoby.spectral.sternberg.load_tables_df()
+        stt1 = scoby.spectral.sttable.STTable(df1, u1)
+        stt2 = scoby.spectral.sttable.STTable(df2, u2)
+
+    def test_leitherer_open(self):
+        """
+        open_tables works, as far as I can tell
+        """
+        df1, u1 = scoby.spectral.leitherer.open_tables()
+        print("\n<LEITHERER>")
+        print(df1)
+        print(u1)
+        print("</LEITHERER>\n")
+        return df1, u1

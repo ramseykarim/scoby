@@ -149,9 +149,9 @@ class STResolver:
               simply cannot sample the map like we do for OB stars.
             """
             # Can set UNCERTAINTY from other files; it works, I checked
+            full_possibilities_list = []
             if UNCERTAINTY:
                 # Do full-on sampling uncertainty
-                full_possibilities_list = []
                 for st_tuple in st_bc_possibilities_t:
                     if STResolver.isWR(st_tuple):
                         # WR star case; add possibilities from wr_samples
@@ -169,7 +169,14 @@ class STResolver:
                         full_possibilities_list.append(st_tuple)
             else:
                 # Do not do any uncertainty past binary components and slash/dashes
-                full_possibilities_list = st_bc_possibilities_t
+                # There was a bug here! The old version only worked for OB stars, not WR
+                for st_tuple in st_bc_possibilities_t:
+                    if STResolver.isWR(st_tuple):
+                        # WR case; use 1 sample (direct measurements)
+                        full_possibilities_list.append(st_tuple + STResolver.sample_WR(st_tuple, nsamples=1).pop())
+                    else:
+                        # Literally anything else, just throw it in the list unchanged
+                        full_possibilities_list.append(st_tuple)
             # Assign the full possibilities list to the spectral_types dictionary
             self.spectral_types[st_binary_component] = full_possibilities_list
         # Check if this instance is part of a CatalogResolver container
@@ -583,7 +590,7 @@ class STResolver:
     """
 
     @staticmethod
-    def sample_WR(st_tuple, nsamples=150):
+    def sample_WR(st_tuple, nsamples=150) -> list[tuple]:
         """
         Get a list of samples of parameters for a given WR spectral type.
         This function handles some memoization since these samples
@@ -598,8 +605,23 @@ class STResolver:
         :param st_tuple: WR spectral type tuple, at least 2 elements
         :param nsamples: number of parameter combinations to draw.
             Not used if this spectral type has already been memoized.
+        :returns: list of tuples
+            List length is nsamples
+            Each tuple element is a sample of the WR star's parameters.
+            This will be a ~5 parameter long tuple (depending on how many WR
+            parameters I have loaded in). The only exception to this is
+            if the WR type is not supported, in which case it's a zero
+            element tuple.
+            If nsamples == 1, it's still a list, it just has one element.
         """
-        # First, check if we already have it and return it if so
+        # FIRST: if nsamples is 1, then we just want the nominal values
+        if nsamples == 1:
+            if st_tuple[:2] in STResolver.wr_params:
+                # Always return a list, even if just one sample
+                return [STResolver.wr_params[st_tuple[:2]]]
+            else:
+                return [()]
+        # Check if we already have it memoized and return it if so
         if st_tuple[:2] in STResolver.wr_samples:
             # We have it memoized
             return STResolver.wr_samples[st_tuple[:2]]
@@ -750,6 +772,9 @@ class STResolver:
         Special treatment for WR stars. PoWR normalizes all spectra to logL=5.3,
         so they must be scaled to the actual luminosity. This function handles
         that, and that's why it needs st_tuple.
+
+        I added this function and fixed this bug on February 16, 2022
+
         :param st_tuple: standard tuple format of spectral type, extended
             for WR stars
         :param model_info: the PoWR model information dictionary that will
@@ -1155,7 +1180,7 @@ class CatalogResolver:
         text = f"<CatalogResolver({len(self.star_list)})>"
         return text
 
-    def map(self, f, star_mask=None):
+    def map(self, f, star_mask=None) -> list:
         """
         Map a function onto every star in the list (except those masked out)
         Return the list of results. If you want it reduced, you'll have to
@@ -1166,6 +1191,10 @@ class CatalogResolver:
         :param star_mask: (optional) a boolean list where "False" means to skip
             the star at that index. If it's included, it must be ordered the
             same as the star_list in this class if it's to mean anything.
+        :returns: list of results of the mapping. The type of the objects
+            contained in the list depends on the function f.
+            The length of the list is the number of "True" values in star_mask,
+            or the same length as self.star_list if star_mask is None
         """
         if star_mask is None:
             star_mask = [True] * len(self.star_list)
@@ -1175,6 +1204,14 @@ class CatalogResolver:
                 continue
             all_star_results.append(f(s))
         return all_star_results
+
+    def __iter__(self):
+        """
+        If you iterate over the CatalogResolver, you're iterating over the list of STResolvers.
+        That seems pretty evident.
+        :returns: iterator over self.star_list
+        """
+        return iter(self.star_list)
 
     @staticmethod
     def reduce_cluster(star_samples, reduce_func=np.sum):
