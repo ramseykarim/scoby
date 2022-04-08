@@ -40,6 +40,7 @@ class TestPoWR(unittest.TestCase):
 
         Also: this doesn't check WR stars, those are a whole can of worms. See the other test suite below this one.
         """
+        print("<test_powr_totalL_accuracy>")
         tbl = spectral.powr.PoWRGrid('OB')
         count = 0
         for model_info in tbl.iter_models():
@@ -52,6 +53,7 @@ class TestPoWR(unittest.TestCase):
             print()
             if count > 20:
                 break
+        print("</test_powr_totalL_accuracy>\n")
 
     def test_powr_plot(self):
         # Plotting stuff
@@ -95,7 +97,9 @@ class TestPoWR(unittest.TestCase):
         I move forward with this exploration in test_L_vs_T_vs_g
         """
         tbl = spectral.powr.PoWRGrid('OB')
+        print("<test_powr_3param>")
         print(tbl.grid_info)
+        print("</test_powr_3param>")
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         Teff = tbl.grid_info['T_EFF'] / 1000.
@@ -113,11 +117,13 @@ class TestPoWR(unittest.TestCase):
                         metadata=create_debug_img_metadata(file=__file__, func_name="test_powr_3param"))
 
     def test_powr_retrieval_by_L(self):
+        print("<test_powr_retrieval_by_L>")
         tbl = spectral.powr.PoWRGrid('OB')
         print(tbl.get_model_info(33040., 3.6))
         print()
         # This works!
         print(tbl.get_model_info(33020., 5.2, 'L'))
+        print("</test_powr_retrieval_by_L>\n")
 
 
 class TestWRCalibration(unittest.TestCase):
@@ -154,10 +160,12 @@ class TestWRCalibration(unittest.TestCase):
 
         wl_spectra_tuples = {m_name: mdls[m_name]['grid'].get_model_spectrum(mdls[m_name]) for m_name in mdls.keys()}
 
+        print("<confirm_that_WR_needs_calibration>")
         print("If these are all 5.3, then WRs do indeed need calibration")
         for m_name in wl_spectra_tuples.keys():
             wl, flux = wl_spectra_tuples[m_name]
             print(np.log10(np.trapz(flux, x=wl).to(u.solLum).to_value()))
+        print("</confirm_that_WR_needs_calibration>\n")
 
     def test_WR_calibration(self):
         """

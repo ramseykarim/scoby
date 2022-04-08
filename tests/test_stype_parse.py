@@ -17,14 +17,6 @@ import pandas as pd
 from scoby import spectral, config
 
 
-def load_test_data():
-    """
-    Helper function to load the test catalog for these tests
-    :returns: pandas DataFrame
-    """
-    return pd.read_csv(config.test_catalog_fn)
-
-
 class TestLoadData(unittest.TestCase):
     """
     Make sure that test data shows up (and do I need to store the pkl file on github or can I store the CSV which is
@@ -34,7 +26,7 @@ class TestLoadData(unittest.TestCase):
     """
 
     def test_load_csv(self):
-        print(load_test_data())
+        print(config.load_test_data())
 
 
 class TestParse(unittest.TestCase):
@@ -51,7 +43,7 @@ class TestParse(unittest.TestCase):
 
         Tested the new subtype dash behavior, it looks like it works! (this is an old comment)
         """
-        cat = load_test_data()
+        cat = config.load_test_data()
         tests = ['O8/B1.5V', 'O8-B1.5V', cat.SpectralType[19], cat.SpectralType[5], cat.SpectralType[7], 'B5/6.5III',
                  'O4II/III', cat.SpectralType[26], cat.SpectralType[27], 'O4-5.5V/III*', "O5:V"]
 
@@ -74,29 +66,3 @@ class TestParse(unittest.TestCase):
             t = tuple(x for x in t if x)
             print(t, end=' --> ')
             print(spectral.parse_sptype.st_adjacent(t))
-
-    def test_full_st_parse(self):
-        """
-        This is no longer the "full" parse (? so where is it? that was an old comment, context lost to history)
-
-        Revisiting on April 5, 2022:
-        Well, this definitely tests something, I'm just not sure what I meant by that
-        I think what I meant up there was that the "full" parse is part of STResolver now, which is tested separately
-        TODO I think what I will do is delete this function since it seems pretty specific to my project
-        """
-        cat = load_test_data()
-        count = 0
-        for st in cat.SpectralType:
-            assert isinstance(st, str)
-            print(f"{st:30s}", end=": ")
-            if st == 'ET':
-                st = 'O9.5V'
-                count += 1
-            stars = [[spectral.parse_sptype.st_parse_type(x) for x in spectral.parse_sptype.st_parse_slashdash(y)] for y
-                     in spectral.parse_sptype.st_parse_binary(st)]
-            types = [x[0][0:2] for x in stars]
-            if types and all(types[0]):
-                print([i[0] + i[1] for i in types])
-            else:
-                print(stars)
-        print(f"There are {count} ET stars")

@@ -115,7 +115,9 @@ class TestCalibration(unittest.TestCase):
             return np.sum(residuals ** 2)
 
         res = minimize(fit_plane, [1, 1, 1])
+        print("<test_L_vs_T_vs_g>")
         print(res.x)
+        print("</test_L_vs_T_vs_g>\n")
         """
         THE FIT IS:
         [ 0.05727171 -0.65728093  5.20380702]
@@ -155,7 +157,9 @@ class TestLeitherer(unittest.TestCase):
         table data overlaid on the interpolation. You should use the right side to look for color discontinuity between
         the interpolation (image) and table data (scattered points)
         """
+        print("<test_leitherer_grid_smoothness>")
         df1, u1 = scoby.spectral.leitherer.open_tables()
+        print(u1)
         T = np.log10(df1['T_eff'])
         Tlabel = f"log T_eff ({u1.loc['T_eff', 'Units']})"
         L = df1['log_L']
@@ -173,7 +177,6 @@ class TestLeitherer(unittest.TestCase):
 
             TL = np.array([T.values, L.values]).T
             interp = scoby.utils.CloughTocher2DInterpolator(TL, z, fill_value=np.nan)
-            print(u1)
 
             plt.subplot2grid(grid_shape, (idx//2, (idx % 2)*2))
 
@@ -201,6 +204,8 @@ class TestLeitherer(unittest.TestCase):
             plt.gca().invert_xaxis()
             plt.gca().set_aspect(aspect)
 
+        print("</test_leitherer_grid_smoothness>\n")
+
         if DEBUG_SHOW:
             plt.show()
         else:
@@ -213,6 +218,7 @@ class TestLeitherer(unittest.TestCase):
         the Leitherer tables and thus reliably map spectral type to mass loss rate
         via T & L. I can also get vinf, so I can get momentum flux.
         """
+        print("<test_leitherer_sptypes>")
         ltables = scoby.spectral.leitherer.LeithererTable()
         mtables = scoby.spectral.sttable.STTable(*scoby.spectral.martins.load_tables_df())
         sptypes_n = np.arange(3, 13., 0.5)
@@ -241,6 +247,7 @@ class TestLeitherer(unittest.TestCase):
                 plt.colorbar(c1, label='log $\dot p$ (dyne)')
                 plt.title("momentum transfer rate")
         plt.tight_layout()
+        print("</test_leitherer_sptypes>\n")
         if DEBUG_SHOW:
             plt.show()
         else:
@@ -248,6 +255,7 @@ class TestLeitherer(unittest.TestCase):
                         metadata=create_debug_img_metadata(file=__file__, func_name="test_leitherer_sptypes"))
 
     def test_leitherer_individuals(self):
+        print("<test_leitherer_individuals>")
         ltables = scoby.spectral.leitherer.LeithererTable()
         mtables = scoby.spectral.sttable.STTable(*scoby.spectral.martins.load_tables_df())
         sptypes = ["O3V", "O5III"]
@@ -259,4 +267,5 @@ class TestLeitherer(unittest.TestCase):
             print(type(T), type(logL))
             logmdot = ltables.lookup_characteristic('log_Mdot', T, logL)
             print(logmdot, type(logmdot))
+        print("</test_leitherer_individuals>\n")
 

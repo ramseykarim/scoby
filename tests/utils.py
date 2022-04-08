@@ -12,7 +12,7 @@ import pwd
 import scoby
 
 
-DEBUG_SHOW = True
+DEBUG_SHOW = False
 debug_img_path = "./tests/debug"
 
 

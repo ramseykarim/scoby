@@ -27,6 +27,7 @@ class TestSTResolver(unittest.TestCase):
     """
 
     def test_WR(self):
+        print("<test_WR>")
         spectral.stresolver.random.seed(1312)
         np.random.seed(1312)
         powr_grids = {x: spectral.powr.PoWRGrid(x) for x in ('OB', "WNE", "WNL", "WNL-H50")}
@@ -45,8 +46,10 @@ class TestSTResolver(unittest.TestCase):
         # for pm in s.powr_models['WN6ha']:
         #     print(pm)
         print(s.get_mass_loss_rate())
+        print("</test_WR>\n")
 
     def test_Catalog(self):
+        print("<test_Catalog>")
         # def f(x):
         #     # function to pass NaNs and print MODEL from DataFrames
         #     try:
@@ -99,8 +102,10 @@ class TestSTResolver(unittest.TestCase):
         # if count > 15:
         #     break
         # return s
+        print("</test_Catalog>\n")
 
     def test_L(self):
+        print("<test_L>")
         spectral.stresolver.random.seed(1312)
         np.random.seed(1312)
         powr_grids = {x: spectral.powr.PoWRGrid(x) for x in spectral.powr.AVAILABLE_POWR_GRIDS}
@@ -127,6 +132,8 @@ class TestSTResolver(unittest.TestCase):
         catr.populate_FUV_flux()  # needs to refresh the FUV flux array
         for x in catr.get_array_FUV_flux():
             print(x)
+        print("</test_L>\n")
+
 
     def test_Q(self):
         spectral.stresolver.random.seed(1312)

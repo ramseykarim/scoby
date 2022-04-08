@@ -23,7 +23,7 @@ import pandas as pd
 # Data for this project that I am including in the Github repo will go in the `data` package
 # You could put PoWR models here too, I have scoby_data/PoWR/ in the .gitignore
 
-from scoby_data import test_data
+from .scoby_data import test_data
 
 """
 PoWR model directory
@@ -152,7 +152,7 @@ if not os.path.isdir(temp_dir):
 test_catalog_fn = "OBradec.csv"
 
 
-def open_test_data():
+def load_test_data():
     """
     For testing: open an example catalog as a pandas DataFrame
     :returns: pandas DataFrame with RAdeg, DEdeg, and SpectralType columns
