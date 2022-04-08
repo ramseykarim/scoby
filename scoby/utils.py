@@ -74,6 +74,7 @@ def save_df_html(df, na_rep='--'):
     df.to_html("~/Downloads/test.html", na_rep=na_rep)
 
 
+
 """
 Everything below is a utility for this project
 """

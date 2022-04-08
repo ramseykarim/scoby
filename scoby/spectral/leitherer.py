@@ -11,6 +11,7 @@ Created: June 8, 2020
 """
 __author__ = "Ramsey Karim"
 
+import importlib.resources
 import os.path
 
 import numpy as np
@@ -21,6 +22,8 @@ from . import sttable
 from .. import utils
 from .. import config
 
+from ..scoby_data import Leitherer
+
 
 def open_single_table(n, just_units=False):
     """
@@ -30,8 +33,8 @@ def open_single_table(n, just_units=False):
         Units are astropy.units.Unit readable
     :returns: pandas DataFrame
     """
-    fn = os.path.join(config.leitherer_path, f"tbl{n}.dat")
-    with open(fn, 'r') as f:
+
+    with importlib.resources.open_text(Leitherer, f"tbl{n}.dat") as f:
         for i in range(3):
             # Skip first 3 lines
             f.readline()
@@ -45,14 +48,14 @@ def open_single_table(n, just_units=False):
             if '(' in c:
                 if ')' not in c:
                     raise RuntimeError(f"Malformed column name: {c}")
-                unit_str = c[c.index('(')+1 : c.index(')')].replace('^', '').replace('_', '')
+                unit_str = c[c.index('(') + 1: c.index(')')].replace('^', '').replace('_', '')
                 new_c = c[:c.index('(')].strip().replace(' ', '_')
                 colnames[i] = new_c
                 units.append(unit_str)
             else:
                 new_c = c
                 units.append('')
-            if new_c in ['Sp. Type', 'T_eff']: # T_eff has commas; fix later
+            if new_c in ['Sp. Type', 'T_eff']:  # T_eff has commas; fix later
                 dtypes[new_c] = str
             elif new_c == 'Model':
                 dtypes[new_c] = int
@@ -97,7 +100,7 @@ class LeithererTable:
         self.column_units = units_df
         # Make the XY Delaunay for quicker interpolation. Work in log T
         self.xy_delaunay = utils.delaunay_triangulate(np.log10(self.table['T_eff']),
-            self.table['log_L'])
+                                                      self.table['log_L'])
         self.memoized_interpolations = {}
 
     @sttable.sanitize_characteristic

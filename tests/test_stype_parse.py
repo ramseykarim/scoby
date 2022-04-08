@@ -16,15 +16,13 @@ import pandas as pd
 
 from scoby import spectral, config
 
-test_catalog_fn = os.path.join(config.test_data_path, "OBradec.csv")
-
 
 def load_test_data():
     """
     Helper function to load the test catalog for these tests
     :returns: pandas DataFrame
     """
-    return pd.read_csv(test_catalog_fn)
+    return pd.read_csv(config.test_catalog_fn)
 
 
 class TestLoadData(unittest.TestCase):

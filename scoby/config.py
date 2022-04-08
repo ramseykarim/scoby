@@ -14,22 +14,16 @@ Created: April 3, 2022
 """
 __author__ = "Ramsey Karim"
 
+import importlib.resources
 import os
 from pathlib import Path
 
-# Any data for this project that I am including in the Github repo
-# You could put PoWR models here too, I have data/PoWR/ in the .gitignore
-data_path = "./data"
+import pandas as pd
 
-# The Leitherer, Martins, and Sternberg tables have already been included in this module in the "data" folder
-leitherer_path = os.path.join(data_path, "Leitherer")
-martins_path = os.path.join(data_path, "Martins")
-sternberg_path = os.path.join(data_path, "Sternberg")
+# Data for this project that I am including in the Github repo will go in the `data` package
+# You could put PoWR models here too, I have scoby_data/PoWR/ in the .gitignore
 
-test_data_path = os.path.join(data_path, "test_data")
-
-debug_img_path = "./tests/debug"
-
+from scoby_data import test_data
 
 """
 PoWR model directory
@@ -62,7 +56,7 @@ You will need to download the "Line spectrum (calibrated)" version for the entir
 you, so long as it includes what you will need. A wider wavelength range is safer.
 
 This will require a long download and create ~0.1 GB of data in total for maybe 4-5 grids.
-(at least when I downloaded them in 2020; I am not sure what has changed, but I know they have updated things). 
+(at least when I downloaded them in 2020; I am not sure what has changed, but I know they have updated things).
 
 The models are organized into grids for each category of star ("OB" for early type main sequence, "WNE" for early
 type WN, etc).
@@ -78,10 +72,10 @@ hardcoded are:
 OB  WC  WNE  WNL  WNL-H50
 
 !!!!!!!!!!!!!!!!!!!!! EVEN MORE IMPORTANT!
-If you need to use more grids than this, you will have to do some editing. 
-Honestly if you have to use any WR stars at all, you will need to edit. I only had 1 WR star and I hardcoded its 
-parameters because WRs are tricky. You do not need to deal with WR stars to run this code; you can do all OBs and it 
-will be much easier. But you can handle WRs if you want to put in a little extra work. There is already a lot of code 
+If you need to use more grids than this, you will have to do some editing.
+Honestly if you have to use any WR stars at all, you will need to edit. I only had 1 WR star and I hardcoded its
+parameters because WRs are tricky. You do not need to deal with WR stars to run this code; you can do all OBs and it
+will be much easier. But you can handle WRs if you want to put in a little extra work. There is already a lot of code
 for handling them and their uncertainties ready to go in here.
 !!!!!!!!!!!!!!!!!!!!!
 
@@ -111,14 +105,13 @@ if not os.path.isdir(powr_path):
                             f"models in order to run scoby. Check the documentation on GitHub for instructions. "
                             f"Once you have downloaded them, you'll need to specify the path to them in config.py")
 
-
 """
 Provide some directory where it is safe to make random temporary files.
 This directory will be used if you identify a catalog reduction process as involving "large" amounts of data.
 For example, if you have like >10 stars in your catalog and you ask for a 2D spatially-resolved G0 map that's 100 pixels
 on a side, the code will need to make and operate on an array of 10x100x100 = 10^5 elements at some point during the
 reduction. BUT, then you have the spectral axis while you're integrating the spectra into G0, so you can see how memory
-can quickly get out of hand. 
+can quickly get out of hand.
 
 I work around this by using numpy memory maps and operating on the array in sections to save your memory and allow
 work on arrays that are too large to fit into memory (or will slow down your computer). In order to do this, I need to
@@ -154,4 +147,17 @@ if not os.path.isdir(temp_dir):
         # This already exists! Done, just set temp_dir to the found directory
         temp_dir = proposed_temp_dir
 
+# The Leitherer, Martins, and Sternberg tables have already been included in this module in the "scoby_data" folder
 
+test_catalog_fn = "OBradec.csv"
+
+
+def open_test_data():
+    """
+    For testing: open an example catalog as a pandas DataFrame
+    :returns: pandas DataFrame with RAdeg, DEdeg, and SpectralType columns
+        There are some other columns but you can get rid of them if you want
+    """
+    with importlib.resources.open_text(test_data, test_catalog_fn) as f:
+        df = pd.read_csv(f)
+    return df

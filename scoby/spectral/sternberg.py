@@ -18,9 +18,13 @@ from .parse_sptype import st_to_number
 
 from .. import utils
 from .. import config
+import importlib.resources
 
-spectypes_table = os.path.join(config.sternberg_path, "spectypes.txt")
-column_name_table = os.path.join(config.sternberg_path, "colnames.txt")
+# Resources
+from ..scoby_data import Sternberg
+
+spectypes_table = "spectypes.txt"
+column_name_table = "colnames.txt"
 
 
 def table_name(spectral_subtype):
@@ -30,7 +34,7 @@ def table_name(spectral_subtype):
     :returns: TODO
     """
     # Spectral subtypes V, III, and I are available
-    return os.path.join(config.sternberg_path, f"class{spectral_subtype}.txt")
+    return f"class{spectral_subtype}.txt"
 
 
 def load_tables_df():
@@ -39,17 +43,20 @@ def load_tables_df():
     :returns: TODO
     """
     # Load column names and units
-    with open(column_name_table, 'r') as f:
+    with importlib.resources.open_text(Sternberg, column_name_table) as f:
         colnames = f.readline().split()
         units = f.readline().replace('1/cm2s', 'cm-2s-1').split()
     # Load spectral types;;;; DO WE USE THESE EVER?? Editorial note (April 29, 2020) it seems these are just a list
     # of spectral types, which doesn't seem all that special
-    with open(spectypes_table, 'r') as f:
+    with importlib.resources.open_text(Sternberg, spectypes_table) as f:
         spectypes = f.readline().split()
     # Create units table
     col_units = pd.DataFrame(units, index=colnames, columns=['Units'])
     # Create star tables
-    lc_dfs = {lc: pd.read_table(table_name(lc), index_col=0, names=colnames) for lc in parse_sptype.luminosity_classes}
+    lc_dfs = {}
+    for lc in parse_sptype.luminosity_classes:
+        with importlib.resources.open_text(Sternberg, table_name(lc)) as f:
+            lc_dfs[lc] = pd.read_table(f, index_col=0, names=colnames)
     # Fix the Teff column comma issue
     for lc in parse_sptype.luminosity_classes:
         lc_dfs[lc]['Teff'] = lc_dfs[lc].apply(lambda row: float(row['Teff'].replace(',', '')), axis=1)

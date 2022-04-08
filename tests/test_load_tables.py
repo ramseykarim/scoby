@@ -30,13 +30,17 @@ class TestConfig(unittest.TestCase):
         self.assertTrue(os.path.isdir(config.temp_dir))
         self.assertTrue(os.path.isdir(config.powr_path))
 
-    def test_martins_calibration_load(self):
-        df1, u1 = scoby.spectral.martins.load_tables_df()
+    def test_sternberg_load(self):
         df2, u2 = scoby.spectral.sternberg.load_tables_df()
-        print("\n<MARTINS load>")
+        print("\n<STERNBERG load>")
         print(u2.index)
         for i in u2.Units:
             print(i, u.Unit(i))
+        print("\n</STERNBERG load>")
+
+    def test_martins_load(self):
+        df1, u1 = scoby.spectral.martins.load_tables_df()
+        print("\n<MARTINS load>")
         print(u1.index)
         for i in u1.Units:
             print(i, u.Unit(i))

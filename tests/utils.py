@@ -11,9 +11,9 @@ import pwd
 
 import scoby
 
-import scoby.config
+
 DEBUG_SHOW = True
-debug_img_path = scoby.config.debug_img_path
+debug_img_path = "./tests/debug"
 
 
 def create_debug_img_metadata(file=None, func_name=None) -> dict:

@@ -21,6 +21,7 @@ late O stars...
 
 Created: June 2, 2020
 """
+import importlib.resources
 import os.path
 
 import pandas as pd
@@ -28,6 +29,8 @@ import pandas as pd
 from . import parse_sptype
 from .. import utils
 from .. import config
+
+from ..scoby_data import Martins
 
 table_info = {
     # Some nice, clean hardcoding
@@ -68,7 +71,7 @@ def load_table_df(n, skiplines, just_units=False):
     :param skiplines: TODO
     :param just_units: TODO
     """
-    with open(os.path.join(config.martins_path, f"table{n}.tex"), 'r') as f:
+    with importlib.resources.open_text(Martins, f"table{n}.tex") as f:
         for i in range(skiplines):
             f.readline()  # Skip table setup
         colnames = split_line_and_apply_replace_key(f.readline())
