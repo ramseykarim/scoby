@@ -52,8 +52,8 @@ PoWR models are available for download here: https://www.astro.physik.uni-potsda
 You should download the full spectrum for every model in each grid.
 When enter a model grid, you will see "Grid Download" instructions on the page, which instruct you to pick a random
 model and proceed. On the specific model's page, you will see a "Start grid download" button with instructions.
-You will need to download the "Line spectrum (calibrated)" version for the entire grid. The wavelength range is up to
-you, so long as it includes what you will need. A wider wavelength range is safer.
+You will need to download the "Spectral energy distribution" version for the entire grid (the one that specifies
+full wavelength coverage with coarse resolution).
 
 This will require a long download and create ~0.1 GB of data in total for maybe 4-5 grids.
 (at least when I downloaded them in 2020; I am not sure what has changed, but I know they have updated things).
