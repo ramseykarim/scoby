@@ -57,7 +57,7 @@ class TestSTResolver(unittest.TestCase):
         #     except:
         #         return "[NO MODEL]"
         spectral.stresolver.random.seed(1312)
-        np.random.seed(1312)
+        # np.random.seed(1312) # this one seems unnecessary, the above one works
         powr_grids = {x: spectral.powr.PoWRGrid(x) for x in spectral.powr.AVAILABLE_POWR_GRIDS}
         cal_tables = spectral.sttable.STTable(*spectral.sternberg.load_tables_df())
         ltables = spectral.leitherer.LeithererTable()
@@ -67,7 +67,7 @@ class TestSTResolver(unittest.TestCase):
         # print(tests)
         tests = ['O5+O7+B1', 'O5-6.5III+O3V', 'O4I/III', 'B1-2', 'C*', 'O4V+PMS']
 
-        spectral.stresolver.UNCERTAINTY = False  # toggle the half-type/sampling
+        spectral.stresolver.UNCERTAINTY = True  # toggle the half-type/sampling
         catr = spectral.stresolver.CatalogResolver(tests,
                                                    calibration_table=cal_tables, leitherer_table=ltables,
                                                    powr_dict=powr_grids)
@@ -81,6 +81,9 @@ class TestSTResolver(unittest.TestCase):
         fluxes = catr.get_array_ionizing_flux()
         for f in fluxes:
             print(f"{f[0]:.2E}, ({f[1][0]:.2E}, {f[1][1]:.2E})")
+        print()
+        print(catr.get_FUV_flux()[0])
+        print()
 
         # count = 0
         # for t in tests:
