@@ -107,6 +107,43 @@ class TestSTResolver(unittest.TestCase):
         # return s
         print("</test_Catalog>\n")
 
+    def test_I_III_V(self):
+        """
+        July 7, 2022
+        Make sure that STResolver differentiates between luminosity classes.
+        There was a bug in one of my tests where I was passing a string spectral
+        type where I needed to pass a tuple, and it unfortunately failed silently
+        because you can index strings and the result of indexing (O, 5, V)
+        and O5V is the same, but not O5III and (O, 5, III). O5III looks like O5I
+        if you index it like that, which is unfortunately a valid type.
+        """
+        spectral.stresolver.random.seed(1312)
+        powr_grids = {x: spectral.powr.PoWRGrid(x) for x in spectral.powr.AVAILABLE_POWR_GRIDS}
+        cal_tables = spectral.sttable.STTable(*spectral.martins.load_tables_df())
+        ltables = spectral.leitherer.LeithererTable()
+        tests = ["O5V", "O5.5V", "O7III"
+
+        ]
+        spectral.stresolver.UNCERTAINTY = False  # toggle the half-type/sampling
+        catr = spectral.stresolver.CatalogResolver(tests,
+                                                   calibration_table=cal_tables, leitherer_table=ltables,
+                                                   powr_dict=powr_grids)
+        print(catr)
+        # mdot, mdot_e = catr.get_mass_loss_rate(nsamples=10)
+        # print(mdot)
+        # print(mdot_e)
+        fluxes_FUV = catr.get_array_FUV_flux()
+        fluxes_ioniz = catr.get_array_ionizing_flux()
+        for x in zip(catr.star_list, fluxes_FUV, fluxes_ioniz):
+            print(x[0])
+            for f in x[1:]:
+                # print("\t", f"{f[0]:.2E} (log:{np.log10(f[0].to_value()):.2f}), ({f[1][0]:.2E}, {f[1][1]:.2E})")
+                print("\t", f"{np.log10(f[0].to_value()):.2f}")
+        print()
+        print(catr.get_FUV_flux()[0])
+        print()
+
+
     def test_L(self):
         print("<test_L>")
         spectral.stresolver.random.seed(1312)

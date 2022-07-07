@@ -258,14 +258,13 @@ class TestLeitherer(unittest.TestCase):
         print("<test_leitherer_individuals>")
         ltables = scoby.spectral.leitherer.LeithererTable()
         mtables = scoby.spectral.sttable.STTable(*scoby.spectral.martins.load_tables_df())
-        sptypes = ["O3V", "O5III"]
+        sptypes = ["O3V", "O3III", "O5III", "O5I"]
         for s in sptypes:
             print(s)
-            T = mtables.lookup_characteristic('Teff', s)
-            logL = mtables.lookup_characteristic('log_L', s)
-            print(T, logL)
-            print(type(T), type(logL))
+            T = mtables.lookup_characteristic('Teff', scoby.spectral.parse_sptype.st_parse_type(s))
+            logL = mtables.lookup_characteristic('log_L', scoby.spectral.parse_sptype.st_parse_type(s))
+            print("\t", T, logL)
+            print("\t", type(T), type(logL))
             logmdot = ltables.lookup_characteristic('log_Mdot', T, logL)
-            print(logmdot, type(logmdot))
+            print("\t", logmdot, type(logmdot))
         print("</test_leitherer_individuals>\n")
-

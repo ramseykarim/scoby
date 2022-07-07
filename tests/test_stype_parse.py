@@ -54,6 +54,25 @@ class TestParse(unittest.TestCase):
                 print('\t', spectral.parse_sptype.st_parse_type(x))
             print()
 
+    def test_st_parse_troublesome(self):
+        """
+        June 21, 2022
+        Test spectral types that might give the code trouble and see how it
+        behaves (preferably would warn the user?)
+        These should get put on a to-do list so I can figure out how the code
+        should respond.
+        """
+        behaves_well = ['O8', 'O9/9.5', 'BI/III']
+        behaves_poorly = ['B3III/IV', 'O7II']
+
+        for t in behaves_well + behaves_poorly:
+            l = spectral.parse_sptype.st_parse_slashdash(t)
+            print(t, '\t', l)
+            for x in l:
+                print('\t', spectral.parse_sptype.st_parse_type(x))
+            print()
+
+
     def test_st_adjacent(self):
         """
         Test grabbing the adjacent spectral types (like a half step away in either direction)

@@ -295,6 +295,7 @@ def sanitize_tuple(spectral_type_tuple):
     Returns False if the spectral type isn't "standard" OBAFGKM
     Assigns luminosity class V if not specified
     Returns spectral type tuple that is sanitized
+    TODO: Should have this fuction make sure it's taking a tuple!!
     """
     if re.search(nonstandard_types_re, spectral_type_tuple[0]):
         return False
