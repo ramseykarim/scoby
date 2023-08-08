@@ -4,4 +4,4 @@ from . import config
 
 from .version import version as __version__
 
-__all__ = ["utils", "spectral", "path_config"]
+__all__ = ["utils", "spectral", "config"]
