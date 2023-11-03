@@ -144,6 +144,15 @@ class TestSTResolver(unittest.TestCase):
         print()
 
 
+    def test_I_II_III(self):
+        """
+        November 2, 2023
+        Make absolutely sure STResolver differentiates luminosity classes.
+        I need to figure out the behavior of LC II
+        """
+        ...
+
+
     def test_L(self):
         print("<test_L>")
         spectral.stresolver.random.seed(1312)

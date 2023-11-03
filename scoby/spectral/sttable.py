@@ -11,6 +11,7 @@ from scipy.interpolate import interp1d
 
 
 from .. import utils
+from .. import config
 
 from . import parse_sptype
 
@@ -123,7 +124,8 @@ class STTable:
         lettertype, subtype, lumclass = spectral_type_tuple
         # If luminosity class is II, use III and print a message
         if lumclass == 'II':
-            # print(f"{__name__}:\nLuminosity class II (bright giant) encountered; defaulting to III (normal giant) for Star: {parse_sptype.st_tuple_to_string(spectral_type_tuple)}, Charateristic: {characteristic}")
+            if config.PRINT_WARNINGS:
+                print(f"{__name__}:\nLuminosity class II (bright giant) encountered; defaulting to III (normal giant) for Star: {parse_sptype.st_tuple_to_string(spectral_type_tuple)}, Charateristic: {characteristic}")
             lumclass = 'III'
         # Get luminosity class DataFrame from self.table_dict
         df_lumclass = self.table_dict[lumclass]

@@ -161,3 +161,13 @@ def load_test_data():
     with importlib.resources.open_text(test_data, test_catalog_fn) as f:
         df = pd.read_csv(f)
     return df
+
+
+"""
+Flag for printing warnings; set it to True (default False) to get printouts when
+something atypical happens. Good for thoroughly understanding your catalog, not
+just for internal debugging. Probably can set it to True once while you're
+building your code and have your catalog in place, and then set it back to False
+when you've established that your catalog is working as expected.
+"""
+PRINT_WARNINGS = False

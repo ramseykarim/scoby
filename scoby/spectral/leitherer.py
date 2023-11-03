@@ -81,7 +81,8 @@ def open_tables():
     tbl1 = open_single_table(1)
     tbl1['T_eff'] = tbl1['T_eff'].apply(lambda s: s.replace(',', '')).astype(float)
     tbl2 = open_single_table(2)
-    units_df = open_single_table(1, just_units=True).append(open_single_table(2, just_units=True))
+    # The line below was updated when pandas deprecated/removed the DataFrame.append method.
+    units_df = pd.concat([open_single_table(1, just_units=True), open_single_table(2, just_units=True)], axis='index')
     units_df = units_df.loc[~units_df.index.duplicated(keep='first')]
     for c in tbl2.columns:
         tbl1[c] = tbl2[c]
